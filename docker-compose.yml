@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: roa_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: repo_onboarding
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: roa_backend
+    environment:
+      FLASK_APP: run.py
+      FLASK_ENV: development
+      DATABASE_URL: mysql+pymysql://root:root@mysql:3306/repo_onboarding
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: flask run --host=0.0.0.0 --port=5000
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: roa_frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src
+    depends_on:
+      - backend
+    command: npm run dev -- --host
+
+volumes:
+  mysql_data:
