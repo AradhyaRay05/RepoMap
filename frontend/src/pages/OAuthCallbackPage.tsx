@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, Check, AlertCircle } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { API_BASE_URL } from "../services/api";
 import Layout from "../components/Layout";
 
 export default function OAuthCallbackPage() {
@@ -24,7 +25,7 @@ export default function OAuthCallbackPage() {
 
     const exchangeCode = async () => {
       try {
-        const response = await fetch(`/api/auth/${provider}/callback`, {
+        const response = await fetch(`${API_BASE_URL}/auth/${provider}/callback`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),

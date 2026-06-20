@@ -20,7 +20,7 @@ With RepoMap, you can:
 
 ### For Developers
 
-RepoMap is designed as a modular full-stack application with a React frontend, Flask backend, MySQL persistence layer, and a static analysis engine.
+RepoMap is designed as a modular full-stack application with a React frontend, Flask backend, PostgreSQL persistence layer, and a static analysis engine.
 
 Developer-focused highlights:
 
@@ -28,7 +28,7 @@ Developer-focused highlights:
 - Extensible analyzer architecture for structure analysis, technology detection, language detection, dependency mapping, entry point detection, architecture discovery, and file ranking.
 - REST API endpoints for starting analysis jobs, checking status, and retrieving reports.
 - React Flow and Recharts for visual dependency and report data presentation.
-- Docker Compose setup for running frontend, backend, and MySQL together.
+- Docker Compose setup for running frontend, backend, and PostgreSQL together.
 - Static analysis only: repository code is inspected, not executed.
 
 ### For Recruiters and Reviewers
@@ -40,7 +40,7 @@ What it showcases:
 - Modern frontend development with React, TypeScript, Vite, Tailwind CSS, routing, reusable components, authentication flows, and responsive UI.
 - Backend API design with Flask, SQLAlchemy, service layers, validation, authentication routes, and structured error handling.
 - Code analysis concepts including repository cloning, language detection, dependency graph generation, architecture pattern recognition, and file importance ranking.
-- Database-backed application design using MySQL and SQLAlchemy models.
+- Database-backed application design using PostgreSQL and SQLAlchemy models.
 - Product thinking through onboarding-focused reports, demo views, SEO metadata, and polished landing pages.
 - Deployment-minded structure with Dockerfiles and Docker Compose.
 
@@ -78,7 +78,7 @@ What it showcases:
 - Flask-CORS
 - Flask-Migrate
 - PyJWT
-- PyMySQL
+- psycopg2-binary
 
 ### Analysis Engine
 
@@ -89,7 +89,7 @@ What it showcases:
 
 ### Database and Tooling
 
-- MySQL 8.0
+- PostgreSQL 16
 - Docker Compose
 - SQLAlchemy ORM
 
@@ -131,7 +131,7 @@ repository-onboarding-assistant/
 1. User submits a public GitHub repository URL.
 2. Backend validates the URL and clones the repository into a temporary workspace.
 3. Static analyzers inspect files, folders, imports, package files, and configuration.
-4. Analysis results are stored in MySQL.
+4. Analysis results are stored in PostgreSQL.
 5. The frontend displays technology summaries, architecture insights, dependency data, important files, and onboarding guidance.
 ```
 
@@ -141,7 +141,7 @@ repository-onboarding-assistant/
 
 - Python 3.11+
 - Node.js 18+
-- MySQL 8.0+
+- PostgreSQL 16+
 - Git
 - Docker and Docker Compose, optional but recommended
 
@@ -157,7 +157,7 @@ Services:
 
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:5000`
-- MySQL: `localhost:3306`
+- PostgreSQL: `localhost:5432`
 
 ### Manual Backend Setup
 
@@ -177,7 +177,7 @@ Example values:
 ```env
 FLASK_APP=run.py
 FLASK_ENV=development
-DATABASE_URL=mysql+pymysql://root:root@localhost:3306/repo_onboarding
+DATABASE_URL=postgresql://postgres:Aradhya%40123@localhost:5432/repomap
 GITHUB_TOKEN=your_github_token
 SECRET_KEY=your_secret_key
 JWT_SECRET_KEY=your_jwt_secret_key
@@ -195,19 +195,56 @@ The Vite frontend runs at `http://localhost:3000`.
 
 ### Database Setup
 
-If you are not using Docker, create the MySQL database manually:
+If you are not using Docker, create the PostgreSQL database manually:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS repo_onboarding
-CHARACTER SET utf8mb4
-COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE repomap;
 ```
 
 Or run the provided schema:
 
 ```bash
-mysql -u root -p < database/schema.sql
+psql "postgresql://postgres:Aradhya%40123@localhost:5432/repomap" -f database/schema.sql
 ```
+
+## Deployment
+
+### Render Backend and PostgreSQL
+
+Create a Render PostgreSQL database, then deploy `backend/` as a Render web service using the backend `Dockerfile`.
+
+Recommended Render PostgreSQL values:
+
+```text
+Name: repomap-db
+Database: repomap
+User: repomap
+```
+
+Set these backend environment variables in Render:
+
+```env
+FLASK_ENV=production
+DATABASE_URL=your_render_postgresql_internal_database_url
+SECRET_KEY=your_production_secret_key
+JWT_SECRET_KEY=your_production_jwt_secret_key
+GITHUB_TOKEN=your_github_token_optional
+WEB_CONCURRENCY=2
+```
+
+The backend Dockerfile reads Render's `PORT` environment variable automatically.
+
+### Vercel Frontend
+
+Deploy `frontend/` to Vercel.
+
+Set this frontend environment variable in Vercel:
+
+```env
+VITE_API_BASE_URL=https://your-render-backend.onrender.com/api
+```
+
+For local development, the frontend still falls back to `/api` and uses the Vite proxy in `frontend/vite.config.ts`.
 
 ## API Overview
 

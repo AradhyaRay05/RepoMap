@@ -1,21 +1,18 @@
-version: "3.8"
-
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: roa_mysql
+  postgres:
+    image: postgres:16-alpine
+    container_name: roa_postgres
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: repo_onboarding
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppassword
+      POSTGRES_DB: repomap
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "Aradhya@123"
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d repomap"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -28,15 +25,16 @@ services:
     environment:
       FLASK_APP: run.py
       FLASK_ENV: development
-      DATABASE_URL: mysql+pymysql://root:root@mysql:3306/repo_onboarding
+      DATABASE_URL: "postgresql://postgres:Aradhya%40123@postgres:5432/repomap"
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-jwt-secret-key}
     ports:
       - "5000:5000"
     volumes:
       - ./backend:/app
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     command: flask run --host=0.0.0.0 --port=5000
 
@@ -54,4 +52,4 @@ services:
     command: npm run dev -- --host
 
 volumes:
-  mysql_data:
+  postgres_data:

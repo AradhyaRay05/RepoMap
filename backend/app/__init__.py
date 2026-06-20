@@ -1,12 +1,10 @@
 import os
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from dotenv import load_dotenv
-import pymysql
 
-pymysql.install_as_MySQLdb()
+from dotenv import load_dotenv
+from flask import Flask, jsonify
+from flask_cors import CORS
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
@@ -22,10 +20,14 @@ def create_app(config_name=None):
 
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
-        db_url = "mysql+pymysql://root:Aradhya%40123@localhost:3306/repo_onboarding"
+        db_url = "postgresql://postgres:Aradhya%40123@localhost:5432/repomap"
+
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
 
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_pre_ping": True}
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
     app.config["GITHUB_TOKEN"] = os.environ.get("GITHUB_TOKEN", "")
     app.config["MAX_REPO_SIZE_MB"] = 500
@@ -34,20 +36,25 @@ def create_app(config_name=None):
 
     db.init_app(app)
     migrate.init_app(app, db)
-    CORS(app)
+    CORS(app, origins=os.environ.get("ALLOWED_ORIGINS", "*").split(","))
 
     @app.route("/")
     def health_check():
-        return jsonify({"status": "ok", "message": "Repository Onboarding Assistant API"})
+        return jsonify(
+            {"status": "ok", "message": "Repository Onboarding Assistant API"}
+        )
 
     from app.api import api_bp
+
     app.register_blueprint(api_bp, url_prefix="/api")
 
     from app.api.routes.auth import auth_bp
+
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
     with app.app_context():
-        from app.models import repository, analysis, report, user
+        from app.models import analysis, report, repository, user
+
         db.create_all()
 
     return app

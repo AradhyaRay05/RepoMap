@@ -1,21 +1,34 @@
 import { Analysis, Report } from "../types";
 
-const API_BASE_URL = "/api";
+export const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL || "/api"
+).replace(/\/$/, "");
 
-async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 10000) {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout = 10000,
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
     clearTimeout(timer);
     return response;
   } catch (err: any) {
     clearTimeout(timer);
     if (err.name === "AbortError") {
-      throw new Error("Request timed out. Make sure the backend server is running on port 5000.");
+      throw new Error(
+        "Request timed out. Make sure the backend API is reachable.",
+      );
     }
-    throw new Error("Cannot connect to server. Make sure the backend is running (flask run).");
+    throw new Error(
+      "Cannot connect to the backend API. Check your API URL and backend service status.",
+    );
   }
 }
 
@@ -25,7 +38,12 @@ function getAuthHeaders(): Record<string, string> {
   return {};
 }
 
-export async function register(email: string, username: string, password: string, provider: string = "email") {
+export async function register(
+  email: string,
+  username: string,
+  password: string,
+  provider: string = "email",
+) {
   const response = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,7 +52,11 @@ export async function register(email: string, username: string, password: string
 
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
   if (!response.ok) throw new Error(data.error || "Registration failed");
   return data;
 }
@@ -48,12 +70,20 @@ export async function login(email: string, password: string) {
 
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
   if (!response.ok) throw new Error(data.error || "Login failed");
   return data;
 }
 
-export async function oauthLogin(provider: string, email: string, username: string) {
+export async function oauthLogin(
+  provider: string,
+  email: string,
+  username: string,
+) {
   const response = await fetchWithTimeout(`${API_BASE_URL}/auth/oauth`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -62,12 +92,18 @@ export async function oauthLogin(provider: string, email: string, username: stri
 
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
   if (!response.ok) throw new Error(data.error || "OAuth login failed");
   return data;
 }
 
-export async function startAnalysis(githubUrl: string): Promise<{ analysis_id: string; status: string }> {
+export async function startAnalysis(
+  githubUrl: string,
+): Promise<{ analysis_id: string; status: string }> {
   const response = await fetchWithTimeout(`${API_BASE_URL}/analyze`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -76,25 +112,42 @@ export async function startAnalysis(githubUrl: string): Promise<{ analysis_id: s
 
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
   if (!response.ok) throw new Error(data.error || "Failed to start analysis");
   return data;
 }
 
 export async function getAnalysisStatus(analysisId: string): Promise<Analysis> {
-  const response = await fetchWithTimeout(`${API_BASE_URL}/analysis/${analysisId}`);
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}/analysis/${analysisId}`,
+  );
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
-  if (!response.ok) throw new Error(data.error || "Failed to get analysis status");
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
+  if (!response.ok)
+    throw new Error(data.error || "Failed to get analysis status");
   return data;
 }
 
 export async function getReport(analysisId: string): Promise<Report> {
-  const response = await fetchWithTimeout(`${API_BASE_URL}/report/${analysisId}`);
+  const response = await fetchWithTimeout(
+    `${API_BASE_URL}/report/${analysisId}`,
+  );
   const text = await response.text();
   let data;
-  try { data = JSON.parse(text); } catch { throw new Error("Server returned invalid response. Is Flask running?"); }
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error("Server returned invalid response. Is Flask running?");
+  }
   if (!response.ok) throw new Error(data.error || "Failed to get report");
   return data;
 }
