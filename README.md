@@ -2,9 +2,6 @@
 
 RepoMap is a full-stack developer productivity platform that helps people understand unfamiliar GitHub repositories faster. Paste a public repository URL, run a static codebase analysis, and get a structured onboarding report with detected technologies, architecture patterns, dependency relationships, important files, and a suggested reading order.
 
-## Short GitHub Description
-
-AI-powered GitHub repository analyzer that maps code structure, detects tech stacks, visualizes dependencies, and generates developer onboarding guides in minutes.
 
 ## Who Is This For?
 
