@@ -272,7 +272,6 @@ RepoMap is a portfolio-ready full-stack project focused on solving a real develo
 
 This project is licensed under the [MIT License](LICENSE).
 
----
 
 ## 📬 Contact
 
@@ -282,6 +281,5 @@ This project is licensed under the [MIT License](LICENSE).
   <a href="https://github.com/AradhyaRay05"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" /></a>
 </p>
 
----
 
 Thanks for visiting ! Feel free to explore my other repositories and connect with me.
